@@ -16,11 +16,14 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+#install.packages("devtools")
+#devtools::install_github("dgonxalex80/paquetePROB", force = TRUE)
+library(paquetePROB)
 library(flexdashboard)
-# Install thematic and un-comment for themed static plots (i.e., ggplot2)
-# thematic::thematic_rmd()
 library(ggplot2)
-library(paqueteMET)
+library(paquetePROB)
+library(dplyr)
+
 
 data("CarreraLuz22")
 
@@ -115,46 +118,98 @@ ggplot(CarreraLuz22F, aes(x = categoria, y = timerun/60 )) +
 t2m
 ```
 
-### Más información
+
+
+### Tiempo por edad
+
+
+```{r}
+ggplot(CarreraLuz22, aes(x = edad, y = timerun)) +
+  geom_point(alpha = 0.5, color = "#0073C2FF") +
+  theme_minimal() +
+  labs(title = "Relación entre Edad y Tiempo de Carrera", x = "Edad", y = "Tiempo (segundos)")
+```
+
+
+
+
+### Tiempo de carrera
+
+```{r}
+ggplot(CarreraLuz22, aes(x = categoria, y = timerun, fill = categoria)) +
+  geom_boxplot(alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Tiempo de Carrera por Categoría", x = "Categoría", y = "Tiempo (segundos)") +
+  scale_fill_brewer(palette = "Blues")
+```
+
+
+
+
+### Información
 
 
 **10.07 K** Participantes desde los 15 años en adelante.
 
 **Salida**: Hotel Intercontinental, calle 5, Carrera 6, carrera 4c, carrera1, carrera 4, calle de la escopeta, museo arqueológico la merced, bulevar del rio, puente Ortiz, av 2N, parque lineal rio Cali av2n, calle 25, parque lineal av1n, calle 13, carrera 1 calle 12, carrera 5, calle 10, gobernación del valle, edificio Aristi carrera 9, calle 9 plazoleta de san francisco, bulevar del rio, calle 8, carrera 4, carrera 3ª, parque del peñón, carrera 3, carrera 3ª oeste, calle 5 oeste, carrera 4, av Belalcázar, carrera 2ª oeste, librería nacional, carrera 1c, museo la tertulia, av Colombia, pepe ganga, carrera 3, carrera 2, carrera 3ª, av Colombia, carrera 4, meta hotel intercontinental. [juanchocorrelon.com](https://juanchocorrelon.com/intercontinental-10k-luz-2022/#10k)
 
+
+
+
 Column {data-width=400}
 -----------------------------------------------------------------------
 
-### Tiempo mujeres categoría Abierta
+### Genero
 
 ```{r}
-# seleccion de bases
-dataFc2=subset(CarreraLuz22, (CarreraLuz22$sex=="Mujer" & CarreraLuz22$categoria=="2. Abierta")) # dataset de mujeres
-x=dataFc2$timerun/60
-hist(x, xlim=c(30,120), ylim=c(0,80),las=1,
-main = " ",
-xlab="tiempo (min)",
-ylab = "frecuencia",
-col ="#ee964b")
+library(ggplot2)
+library(dplyr)
+
+# Calcular los porcentajes
+df_sex <- CarreraLuz22 %>%
+  count(sex) %>%
+  mutate(percentage = round(n / sum(n) * 100, 1),
+         label = paste0(percentage, "%"))  # Formato de etiqueta
+
+# Crear gráfico de pastel con etiquetas de porcentaje
+ggplot(df_sex, aes(x = "", y = n, fill = sex)) +
+  geom_bar(stat = "identity", width = 1) +  # Crear el pastel
+  coord_polar(theta = "y") +  # Convertir a circular
+  theme_minimal() +
+  labs(title = "Distribución de Género") +
+  scale_fill_manual(values = c("#0073C2FF", "#EFC000FF")) +
+  geom_text(aes(label = label), position = position_stack(vjust = 0.5), size = 5, color = "white") +
+  theme(axis.text.x = element_blank(),  # Ocultar ejes innecesarios
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = "right")
+
+
+
+
 ```
 
-### Tiempo hombres categoría Abierta
+### Edad
 
 ```{r}
-# seleccion de bases
-dataMc2=subset(CarreraLuz22, (CarreraLuz22$sex=="Hombre" & CarreraLuz22$categoria=="2. Abierta")) # dataset de mujeres
-x=dataMc2$timerun/60
-hist(x, xlim=c(30,120), ylim=c(0,250),las=1,
-main = " ",
-xlab="tiempo (min)",
-ylab = "frecuencia",
-col ="#ee964b")
+ggplot(CarreraLuz22, aes(x = edad)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black", alpha = 0.7) +
+  geom_density(aes(y = ..count.. * 5), color = "darkblue", size = 1) +
+  theme_minimal() +
+  labs(title = "Distribución de Edades", x = "Edad", y = "Frecuencia")
+
 ```
+
+
+
 
 Column { data-width=50 }
 -----------------------------------------------------------------------
 ### apertura  {.value-box}
+
+
 ```{r}
+
 valueBox(value =paste(round(min(CarreraLuz22$timerun/60),1), "min"), 
          caption = "Tiempo ganador", 
          icon = "fa-thumbs-up", 
